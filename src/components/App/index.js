@@ -6,8 +6,10 @@ import "./main.css";
 class App extends Component {
     state = {
         translation: {},
-        active: "en",
-        translated: {}
+        active: "English",
+        translated: [],
+        encoding: { "en": 0, "es": 1, "pt": 2, "fr": 3, "zh": 4, "pl": 5, "de": 6 },
+        languages: ["English", "Spanish", "Portuguese", "French", "Mandarin (Simplified)", "Polish", "German"]
     }
 
 
@@ -15,49 +17,77 @@ class App extends Component {
     componentDidMount() {
         csv(data)
             .then(res => {
-                this.setState({ ...this.state, translation: res })
+                const Languages = this.state.languages;
+                const l = navigator.language.split("-")[0]
+                const act = Languages[this.state.encoding[l]]
+                this.setState({ ...this.state, translation: res, active: act })
+                this.translate(act)
             })
     }
 
 
-    clickhandle = () => {
-        document.querySelectorAll(".texttr").forEach((i, id) => {
-            const a = i.childNodes[0].textContent.trim()
-            var n = this.state.translation.filter((o, id) => o.English.includes(a));
-            var c = this.state.translation.reduce(function (acc, curr, id) {
-                if (curr.English.includes(a)) {
-                    acc.push([curr, id])
+    translate = (lang) => {
+        if (this.state.translated.length === 0) {
+            var indexes = []
+            document.querySelectorAll(".texttr").forEach((i, id) => {
+                const a = i.childNodes[0].textContent.trim()
+                var c = this.state.translation.reduce(function (acc, curr, id) {
+                    if (curr.English.includes(a)) {
+                        acc.push([curr, id])
+                    }
+                    return acc
+                }, [])
+                if (c.length > 0) {
+                    if (c.length > 1) {
+                        c = c.filter(i => i[0].English.length === a.length);
+                    }
+                    if (c[0][0].English.length === a.length) {
+                        i.childNodes[0].textContent = c[0][0][lang];
+                        indexes[id] = c[0][1]
+                    }
+                    else {
+                        //console.log(c[0].English, "\n", a, "\n", id)
+                    }
                 }
-                return acc
-            }, [])
+                else {
+                    //console.log(a)
+                }
+            })
+            this.setState({ ...this.state, translated: indexes })
+        }
+        else {
+            let _id = 0;
+            let translations = null;
+            document.querySelectorAll(".texttr").forEach((i, id) => {
+                _id = this.state.translated[id];
+                if (_id !== undefined) {
+                    translations = this.state.translation[_id]
+                    i.childNodes[0].textContent = translations[lang];
 
-            console.log(c.length===n.length)
+                }
+            })
 
-            if (c.length > 0) {
-                if (c.length > 1) {
-                    console.log(c)
-                    //c.forEach(i=> console.log(i.English.length,a.length))
-                    c = c.filter(i => i[0].English.length === a.length);
-                    //console.log("fin", c[0])
-                }
-                if (c[0][0].English.length == a.length) {
-                    i.childNodes[0].textContent = c[0][0].Spanish;
-                }
-                else {                   
-                    //console.log(c[0].English, "\n", a, "\n", id) 
-                }
-            }
-            else {
-               //console.log(a)
-            }
-        })
+        }
+
     }
 
 
+    options = () => {
+        return (this.state.languages.map((i, id) => (
+            <option key={id} value={i}>{i}</option>
+        )
+        ))
+    }
+
+    changeLang = e => {
+        this.setState({ ...this.state, active: e.target.value })
+        this.translate(e.target.value)
+    }
+
     render() {
         return (
+
             <div>
-                <button onClick={this.clickhandle}></button>
                 <div className="cover-image-gv">
                     <div className="banner-overlay global">
                         <div className="global-logo">
@@ -374,9 +404,9 @@ class App extends Component {
                             </span>
                             <span>
                                 <div className="select-box-custom">
-                                    <div className="custom-footer-select dropup">
-                                        Select Language
-                            </div>
+                                    <select name="lang" id="lang" value={this.state.active} onChange={this.changeLang}>
+                                        {this.options()}
+                                    </select>
                                 </div>
                             </span>
                         </div>
