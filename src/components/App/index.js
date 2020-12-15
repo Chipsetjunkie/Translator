@@ -71,6 +71,12 @@ class App extends Component {
 
     }
 
+    changeLang = e => {
+        if (e.target.value !== this.state.active) {
+            this.setState({ ...this.state, active: e.target.value })
+            this.translate(e.target.value)
+        }
+    }
 
     options = () => {
         return (this.state.languages.map((i, id) => (
@@ -79,14 +85,9 @@ class App extends Component {
         ))
     }
 
-    changeLang = e => {
-        this.setState({ ...this.state, active: e.target.value })
-        this.translate(e.target.value)
-    }
 
     render() {
         return (
-
             <div>
                 <div className="cover-image-gv">
                     <div className="banner-overlay global">
