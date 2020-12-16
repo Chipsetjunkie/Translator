@@ -3,13 +3,22 @@ import { csv } from "d3";
 import data from "./data.csv";
 import "./main.css";
 
+
+const ENCODING = { 
+    "en": "English", 
+    "es": "Spanish", 
+    "pt": "Portuguese", 
+    "fr": "French", 
+    "zh": "Mandarin (Simplified)", 
+    "pl": "Polish", 
+    "de": "German" }
+
+
 class App extends Component {
     state = {
         translation: {},
-        active: "English",
-        translated: [],
-        encoding: { "en": 0, "es": 1, "pt": 2, "fr": 3, "zh": 4, "pl": 5, "de": 6 },
-        languages: ["English", "Spanish", "Portuguese", "French", "Mandarin (Simplified)", "Polish", "German"]
+        active: ENCODING[navigator.language.split("-")[0]]??"English",
+        translated: []
     }
 
 
@@ -17,10 +26,9 @@ class App extends Component {
     componentDidMount() {
         csv(data)
             .then(res => {
-                const Languages = this.state.languages;
                 const l = navigator.language.split("-")[0]
-                const act = Languages[this.state.encoding[l]]
-                this.setState({ ...this.state, translation: res, active: act })
+                const act = ENCODING[l]??this.state.active
+                this.setState({ ...this.state, translation: res, active: act})
                 this.translate(act)
             })
     }
@@ -73,14 +81,14 @@ class App extends Component {
 
     changeLang = e => {
         if (e.target.value !== this.state.active) {
-            this.setState({ ...this.state, active: e.target.value })
+            this.setState({ ...this.state, active: e.target.value})
             this.translate(e.target.value)
         }
     }
 
     options = () => {
-        return (this.state.languages.map((i, id) => (
-            <option key={id} value={i}>{i}</option>
+        return (Object.entries(ENCODING).map((i, id) => (
+            <option key={id} value={i[1]}>{i[1]}</option>
         )
         ))
     }
